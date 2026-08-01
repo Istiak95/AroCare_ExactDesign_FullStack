@@ -1,0 +1,38 @@
+{
+  "orders": [
+    {
+      "id": "AC-1042",
+      "status": "Out for delivery",
+      "eta": "Today, 4:00–7:00 PM",
+      "createdAt": "2026-08-01T06:00:00.000Z",
+      "total": 1230,
+      "payment": "cod",
+      "address": {
+        "name": "Demo Customer",
+        "phone": "01700000000",
+        "address": "Dhanmondi, Dhaka"
+      },
+      "items": [
+        {
+          "id": 1,
+          "name": "Napa 500 mg",
+          "qty": 2,
+          "price": 20,
+          "image": "/products/p1.png",
+          "unit": "10 tablets"
+        }
+      ],
+      "timeline": [
+        "Order confirmed",
+        "Pharmacist reviewed",
+        "Packed",
+        "Out for delivery"
+      ]
+    }
+  ],
+  "prescriptions": [],
+  "labBookings": [],
+  "doctorBookings": [],
+  "supportTickets": [],
+  "users": []
+}

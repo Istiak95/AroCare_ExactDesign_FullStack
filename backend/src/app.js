@@ -28,7 +28,26 @@ app.use(cors({
 }));
 app.use(express.json({limit:"1mb"}));
 app.use("/uploads",express.static(uploadDir));
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    app: "AroCare API",
+    message: "AroCare backend is running",
+    endpoints: {
+      health: "/health",
+      products: "/api/products",
+      chatbotStatus: "/api/chat/status"
+    }
+  });
+});
 
+app.get("/favicon.ico", (req, res) => {
+  res.status(204).end();
+});
+
+app.get("/favicon.png", (req, res) => {
+  res.status(204).end();
+});
 app.get("/health",(_,res)=>res.json({status:"ok",app:"AroCare API",chatbot:process.env.GEMINI_API_KEY?"Gemini + local fallback":"local fallback",geminiConfigured:Boolean(process.env.GEMINI_API_KEY),geminiModel:process.env.GEMINI_MODEL||"auto-detect"}));
 app.get("/api/chat/status",async(_,res)=>res.json(await getGeminiStatus({apiKey:process.env.GEMINI_API_KEY,model:process.env.GEMINI_MODEL||""})));
 app.get("/api/categories",(_,res)=>res.json(categories));

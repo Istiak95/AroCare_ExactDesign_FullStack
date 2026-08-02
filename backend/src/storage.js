@@ -3,7 +3,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const file = path.join(__dirname, "../data-store.json");
+const isVercel = Boolean(process.env.VERCEL);
+const file = isVercel
+  ? path.join("/tmp", "arocare-data-store.json")
+  : path.join(__dirname, "../data-store.json");
+
 const initial = {
   orders: [{
     id: "AC-1042",
@@ -23,21 +27,29 @@ const initial = {
   users: []
 };
 
+function cloneInitial() {
+  return structuredClone(initial);
+}
+
 function ensure() {
-  if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify(initial, null, 2));
+  if (!fs.existsSync(file)) {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(initial, null, 2));
+  }
 }
 
 export function readStore() {
   ensure();
   try {
     const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
-    return { ...structuredClone(initial), ...parsed };
+    return { ...cloneInitial(), ...parsed };
   } catch {
-    return structuredClone(initial);
+    return cloneInitial();
   }
 }
 
 export function writeStore(store) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(store, null, 2));
   return store;
 }

@@ -1,5 +1,8 @@
 import { products, labTests, doctors, policies } from "./data.js";
-import { readStore, updateStore } from "./storage.js";
+import {
+  getOrderById,
+  createSupportTicketRecord,
+} from "./storage.js";
 
 const urgentPatterns = [
   /chest pain|বুকে ব্যথা|বুকের ব্যথা|buk(e|er)? betha/i,
@@ -27,9 +30,12 @@ function languageHint(message) {
   if (/\b(ami|amar|amr|kobe|kothay|koi|lagbe|chai|ase|ache|ki|kivabe|keno|dao|parbo)\b/i.test(message)) return "Banglish";
   return "English";
 }
-function findOrder(message) {
-  const id = message.match(orderIdPattern)?.[0]?.toUpperCase();
-  return id ? readStore().orders.find((order) => order.id === id) : null;
+async function findOrder(message) {
+  const id = message
+    .match(orderIdPattern)?.[0]
+    ?.toUpperCase();
+
+  return id ? getOrderById(id) : null;
 }
 function findProduct(message) {
   const normalizedMessage = normalize(message);
@@ -75,8 +81,8 @@ function productPayload(product) {
   };
 }
 
-function localReply(message) {
-  const order = findOrder(message);
+async function localReply(message) {
+  const order = await findOrder(message);
 
   if (order) {
     return { reply: `আপনার Order ${order.id} বর্তমানে “${order.status}” অবস্থায় আছে। আনুমানিক delivery: ${order.eta}।`, orderId: order.id };
@@ -250,7 +256,7 @@ export async function getChatReply({ message, history = [] }, config = {}) {
     return { reply: "Human support request পাঠাতে নিচের ‘Talk to human agent’ বাটনে চাপুন এবং নাম ও phone number দিন।", handoff: true, source: "local" };
   }
 
-  const deterministic = localReply(message);
+  const deterministic = await localReply(message);
   if (deterministic) return { ...deterministic, source: "local", language: languageHint(message) };
 
   if (config.apiKey) {
@@ -271,10 +277,6 @@ export async function getChatReply({ message, history = [] }, config = {}) {
   return { reply, handoff: false, source: "fallback", language };
 }
 
-export function createSupportTicket(payload) {
-  return updateStore((store) => {
-    const ticket = { id: `SUP-${Date.now().toString().slice(-7)}`, status: "Open", createdAt: new Date().toISOString(), ...payload };
-    store.supportTickets.push(ticket);
-    return ticket;
-  });
+export async function createSupportTicket(payload) {
+  return createSupportTicketRecord(payload);
 }

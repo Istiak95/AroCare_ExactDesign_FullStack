@@ -240,3 +240,286 @@ body{background:#fff;color:var(--ink)}
 .answer-source{font-size:7px;text-align:right;border-top:1px dashed rgba(100,130,118,.18);padding-top:4px;color:#80908a}.answer-source.gemini{color:#1769aa}.answer-source.local{color:#287a50}.answer-source.safety{color:#a43c31}.answer-source.offline,.answer-source.fallback{color:#9a6a20}
 .product-image img,.main-image img,.category-card img{image-rendering:auto}
 .chat-product{display:grid;grid-template-columns:58px 1fr;gap:8px;align-items:center;background:#f7fbf8;border:1px solid #d9e8df;border-radius:10px;padding:7px;color:inherit;text-decoration:none}.chat-product img{width:58px;height:58px;object-fit:contain;border-radius:8px;background:#fff}.chat-product>span{display:flex;flex-direction:column;min-width:0}.chat-product b{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chat-product small{font-size:7px;color:#7a8b85;margin:2px 0}.chat-product strong{font-size:10px;color:var(--green)}
+/* =========================================================
+   FINAL MOBILE HEADER FIX
+   এই block অবশ্যই styles.css-এর একদম শেষে থাকবে
+   ========================================================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 800px) {
+  .utility-bar {
+    display: none !important;
+  }
+
+  .site-header {
+    position: sticky !important;
+    top: 0;
+    z-index: 1000;
+    background: #ffffff;
+  }
+
+  /* Logo, cart and menu button */
+  .header-main {
+    height: auto !important;
+    min-height: 68px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 0 12px !important;
+  }
+
+  .logo {
+    min-width: 0;
+    font-size: 22px !important;
+    gap: 7px !important;
+    letter-spacing: -1px !important;
+  }
+
+  .logo-leaf {
+    width: 34px !important;
+    height: 36px !important;
+    flex-shrink: 0;
+  }
+
+  .logo small {
+    font-size: 8px !important;
+  }
+
+  .header-actions {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px !important;
+  }
+
+  /* Desktop account/wishlist actions hide */
+  .header-actions .header-action {
+    display: none !important;
+  }
+
+  /*
+    Cart সাধারণত mobile-menu button-এর ঠিক আগের element।
+    পুরোনো last-of-type selector Wishlist select করছিল।
+  */
+  .header-actions .header-action.compact:nth-last-child(2) {
+    display: flex !important;
+    width: 38px;
+    height: 38px;
+    padding: 7px !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-actions .header-action.compact:nth-last-child(2) span {
+    display: none !important;
+  }
+
+  .header-actions .header-action.compact:nth-last-child(2) > svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mobile-menu {
+    display: grid !important;
+    place-items: center;
+    width: 40px !important;
+    height: 40px !important;
+    border: 0;
+    border-radius: 10px;
+    background: #eaf7ef;
+    color: var(--green);
+    padding: 0;
+  }
+
+  .mobile-menu svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Search bar second row */
+  .global-search {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    margin: 0 !important;
+    border-radius: 9px !important;
+  }
+
+  .global-search input {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 12px !important;
+    font-size: 11px !important;
+  }
+
+  .global-search > svg {
+    flex-shrink: 0;
+  }
+
+  .category-select {
+    display: none !important;
+  }
+
+  .search-submit {
+    width: 48px !important;
+    min-width: 48px !important;
+    padding: 0 !important;
+  }
+
+  /* Mobile navigation */
+  .main-nav {
+    display: none !important;
+    position: absolute !important;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: #ffffff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 18px 35px rgba(15, 52, 38, 0.16);
+  }
+
+  .main-nav.open {
+    display: block !important;
+  }
+
+  .nav-inner {
+    width: min(100% - 24px, 1270px) !important;
+    height: auto !important;
+    max-height: calc(100vh - 130px);
+    margin: 0 auto !important;
+    padding: 10px 0 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 3px !important;
+    overflow-y: auto;
+    white-space: normal !important;
+  }
+
+  .nav-inner a,
+  .nav-inner > button {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 10px 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    border-radius: 8px;
+    font-size: 12px !important;
+  }
+
+  .nav-inner a:hover,
+  .nav-inner a.active,
+  .nav-inner > button:hover {
+    background: #edf8f1 !important;
+    color: var(--green) !important;
+  }
+
+  .nav-inner a.active::after {
+    display: none !important;
+  }
+
+  .rx-nav {
+    margin-left: 0 !important;
+  }
+
+  /* Mobile hero */
+  .home-hero {
+    width: 100% !important;
+    min-height: 0 !important;
+    margin-top: 12px !important;
+    grid-template-columns: 1fr !important;
+    border-radius: 14px !important;
+  }
+
+  .hero-copy {
+    padding: 34px 22px 28px !important;
+  }
+
+  .hero-copy h1 {
+    margin: 12px 0 17px !important;
+    font-size: 36px !important;
+    line-height: 1.08 !important;
+    letter-spacing: -1.8px !important;
+  }
+
+  .hero-copy > p {
+    font-size: 13px !important;
+  }
+
+  .hero-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .hero-actions .primary,
+  .hero-actions .secondary {
+    width: 100% !important;
+  }
+
+  .hero-trust {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px !important;
+  }
+
+  .hero-art {
+    display: block !important;
+    width: 100%;
+    min-height: 235px !important;
+  }
+
+  .hero-art img {
+    display: block;
+    width: 100% !important;
+    height: 235px !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    border-radius: 0 0 14px 14px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .container {
+    width: calc(100% - 20px) !important;
+  }
+
+  .logo {
+    font-size: 20px !important;
+  }
+
+  .logo small {
+    display: none;
+  }
+
+  .hero-copy h1 {
+    font-size: 32px !important;
+  }
+
+  .hero-trust {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .hero-art,
+  .hero-art img {
+    min-height: 210px !important;
+    height: 210px !important;
+  }
+}

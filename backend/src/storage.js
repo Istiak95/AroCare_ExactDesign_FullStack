@@ -1,62 +1,303 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { getDb } from "./db.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const isVercel = Boolean(process.env.VERCEL);
-const file = isVercel
-  ? path.join("/tmp", "arocare-data-store.json")
-  : path.join(__dirname, "../data-store.json");
+const ALLOWED_TABLES = new Set([
+  "orders",
+  "prescriptions",
+  "lab_bookings",
+  "doctor_bookings",
+  "support_tickets",
+  "users",
+]);
 
-const initial = {
-  orders: [{
-    id: "AC-1042",
-    status: "Out for delivery",
-    eta: "Today, 4:00–7:00 PM",
-    createdAt: "2026-08-01T06:00:00.000Z",
-    total: 1230,
-    payment: "cod",
-    address: { name: "Demo Customer", phone: "01700000000", address: "Dhanmondi, Dhaka" },
-    items: [{ id: 1, name: "Napa 500 mg", qty: 2, price: 20, image: "/products/p1.png", unit: "10 tablets" }],
-    timeline: ["Order confirmed", "Pharmacist reviewed", "Packed", "Out for delivery"]
-  }],
-  prescriptions: [],
-  labBookings: [],
-  doctorBookings: [],
-  supportTickets: [],
-  users: []
-};
-
-function cloneInitial() {
-  return structuredClone(initial);
-}
-
-function ensure() {
-  if (!fs.existsSync(file)) {
-    fs.mkdirSync(path.dirname(file), { recursive: true });
-    fs.writeFileSync(file, JSON.stringify(initial, null, 2));
+function assertTable(table) {
+  if (!ALLOWED_TABLES.has(table)) {
+    throw new Error(`Unsupported table: ${table}`);
   }
 }
 
-export function readStore() {
-  ensure();
+function parsePayload(value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (typeof value === "object") {
+    return value;
+  }
+
   try {
-    const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
-    return { ...cloneInitial(), ...parsed };
+    return JSON.parse(value);
   } catch {
-    return cloneInitial();
+    throw new Error("Invalid JSON payload received from TiDB.");
   }
 }
 
-export function writeStore(store) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(store, null, 2));
-  return store;
+async function listRecords(table) {
+  assertTable(table);
+
+  const rows = await getDb().execute(
+    `SELECT payload
+     FROM ${table}
+     ORDER BY created_at DESC`
+  );
+
+  return rows
+    .map((row) => parsePayload(row.payload))
+    .filter(Boolean);
 }
 
-export function updateStore(mutator) {
-  const store = readStore();
-  const result = mutator(store);
-  writeStore(store);
-  return result;
+async function getRecord(table, id) {
+  assertTable(table);
+
+  const rows = await getDb().execute(
+    `SELECT payload
+     FROM ${table}
+     WHERE id = ?
+     LIMIT 1`,
+    [String(id)]
+  );
+
+  if (!rows.length) {
+    return null;
+  }
+
+  return parsePayload(rows[0].payload);
+}
+
+async function insertRecord(table, record) {
+  assertTable(table);
+
+  if (!record?.id) {
+    throw new Error(`Record id is required for ${table}.`);
+  }
+
+  await getDb().execute(
+    `INSERT INTO ${table} (id, payload)
+     VALUES (?, ?)`,
+    [
+      String(record.id),
+      JSON.stringify(record),
+    ]
+  );
+
+  return record;
+}
+
+async function updateRecord(table, id, updater) {
+  const current = await getRecord(table, id);
+
+  if (!current) {
+    return null;
+  }
+
+  const updated = await updater(
+    structuredClone(current)
+  );
+
+  if (!updated) {
+    return null;
+  }
+
+  await getDb().execute(
+    `UPDATE ${table}
+     SET payload = ?,
+         updated_at = CURRENT_TIMESTAMP(3)
+     WHERE id = ?`,
+    [
+      JSON.stringify(updated),
+      String(id),
+    ]
+  );
+
+  return updated;
+}
+
+function createId(prefix, digits = 8) {
+  return `${prefix}-${Date.now()
+    .toString()
+    .slice(-digits)}`;
+}
+
+/* Orders */
+
+export function getOrders() {
+  return listRecords("orders");
+}
+
+export function getOrderById(id) {
+  return getRecord(
+    "orders",
+    String(id).toUpperCase()
+  );
+}
+
+export async function createOrder(payload = {}) {
+  let orderId;
+  let existing;
+
+  do {
+    orderId = `AC-${Math.floor(
+      1000 + Math.random() * 9000
+    )}`;
+
+    existing = await getOrderById(orderId);
+  } while (existing);
+
+  const order = {
+    id: orderId,
+    status: "Order confirmed",
+    eta: "Within 1–3 working days",
+    timeline: ["Order confirmed"],
+    createdAt: new Date().toISOString(),
+    ...payload,
+  };
+
+  return insertRecord("orders", order);
+}
+
+export function updateOrderStatus(id, status) {
+  return updateRecord(
+    "orders",
+    String(id).toUpperCase(),
+    (order) => {
+      order.status = status;
+
+      order.timeline = Array.isArray(order.timeline)
+        ? order.timeline
+        : [];
+
+      if (
+        status !== "Cancelled" &&
+        !order.timeline.includes(status)
+      ) {
+        order.timeline.push(status);
+      }
+
+      order.updatedAt = new Date().toISOString();
+
+      return order;
+    }
+  );
+}
+
+/* Prescriptions */
+
+export function getPrescriptions() {
+  return listRecords("prescriptions");
+}
+
+export async function createPrescription(
+  payload = {}
+) {
+  const prescription = {
+    id: createId("RX", 6),
+    status: "Submitted for pharmacist review",
+    createdAt: new Date().toISOString(),
+    ...payload,
+  };
+
+  return insertRecord(
+    "prescriptions",
+    prescription
+  );
+}
+
+/* Lab bookings */
+
+export function getLabBookings() {
+  return listRecords("lab_bookings");
+}
+
+export async function createLabBooking(
+  payload = {}
+) {
+  const booking = {
+    id: createId("LAB", 6),
+    status: "Collection requested",
+    createdAt: new Date().toISOString(),
+    ...payload,
+  };
+
+  return insertRecord(
+    "lab_bookings",
+    booking
+  );
+}
+
+/* Doctor bookings */
+
+export function getDoctorBookings() {
+  return listRecords("doctor_bookings");
+}
+
+export async function createDoctorBooking(
+  payload = {}
+) {
+  const booking = {
+    id: createId("DOC", 6),
+    status: "Appointment requested",
+    createdAt: new Date().toISOString(),
+    ...payload,
+  };
+
+  return insertRecord(
+    "doctor_bookings",
+    booking
+  );
+}
+
+/* Support tickets */
+
+export function getSupportTickets() {
+  return listRecords("support_tickets");
+}
+
+export async function createSupportTicketRecord(
+  payload = {}
+) {
+  const ticket = {
+    id: createId("SUP", 7),
+    status: "Open",
+    createdAt: new Date().toISOString(),
+    ...payload,
+  };
+
+  return insertRecord(
+    "support_tickets",
+    ticket
+  );
+}
+
+/* Users */
+
+export function getUsers() {
+  return listRecords("users");
+}
+
+/* Admin dashboard snapshot */
+
+export async function getStoreSnapshot() {
+  const [
+    orders,
+    prescriptions,
+    labBookings,
+    doctorBookings,
+    supportTickets,
+    users,
+  ] = await Promise.all([
+    getOrders(),
+    getPrescriptions(),
+    getLabBookings(),
+    getDoctorBookings(),
+    getSupportTickets(),
+    getUsers(),
+  ]);
+
+  return {
+    orders,
+    prescriptions,
+    labBookings,
+    doctorBookings,
+    supportTickets,
+    users,
+  };
 }

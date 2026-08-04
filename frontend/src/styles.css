@@ -592,3 +592,112 @@ body,
     height: 112px !important;
   }
 }
+/* =========================================================
+   FINAL CATEGORY AND PRODUCT IMAGE DISPLAY FIX
+   ========================================================= */
+
+.category-card {
+  position: relative !important;
+  display: block !important;
+  height: 210px !important;
+  padding: 18px 15px !important;
+  overflow: hidden !important;
+}
+
+.category-card > div {
+  position: relative;
+  z-index: 2;
+  width: 55%;
+}
+
+.category-card p {
+  max-width: 130px !important;
+}
+
+.category-card .category-product-image {
+  position: absolute !important;
+  right: -4px !important;
+  bottom: -2px !important;
+  width: 58% !important;
+  height: 145px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  mix-blend-mode: multiply;
+  filter: drop-shadow(
+    0 10px 10px rgba(33, 55, 46, 0.15)
+  ) !important;
+  z-index: 1;
+}
+
+/* Product catalogue image size */
+
+.product-image {
+  height: 235px !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #ffffff !important;
+}
+
+.product-image img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  transform: scale(1) !important;
+  transition: transform 0.25s ease !important;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.04) !important;
+}
+
+@media (max-width: 800px) {
+  .category-card {
+    height: 190px !important;
+  }
+
+  .category-card .category-product-image {
+    width: 56% !important;
+    height: 130px !important;
+  }
+
+  .product-image {
+    height: 205px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .category-card {
+    height: 175px !important;
+    padding: 13px !important;
+  }
+
+  .category-card > div {
+    width: 58%;
+  }
+
+  .category-card p {
+    max-width: 95px !important;
+  }
+
+  .category-card .category-product-image {
+    right: -8px !important;
+    bottom: -3px !important;
+    width: 58% !important;
+    height: 112px !important;
+  }
+
+  .product-image {
+    height: 175px !important;
+    padding: 5px !important;
+  }
+}

@@ -39,7 +39,14 @@ const reviews = [
   ["Priya Sen", "Doctor booking was smooth, and Bangla support made everything easy."],
   ["Sandeep Roy", "Clear prices, original products and a very helpful support experience."],
 ];
-
+const categoryImages = {
+  medicine: "/products/p1.png",
+  healthcare: "/products/p13.png",
+  beauty: "/products/p5.png",
+  wellness: "/products/p14.png",
+  devices: "/products/p8.png",
+  "mother-baby": "/products/p10.png",
+};
 export default function Home({ products, categories, addToCart, wishlist, toggleWishlist, onPrescription }) {
   return (
     <>
@@ -96,7 +103,19 @@ export default function Home({ products, categories, addToCart, wishlist, toggle
                 <h3>{category.name}</h3>
                 <p>{category.description}</p>
               </div>
-              <img src={`/products/p${(index % 12) + 1}.png`} alt={category.name} onError={(event)=>{event.currentTarget.onerror=null;event.currentTarget.src="/products/placeholder.png";}} />
+              <img
+  className="category-product-image"
+  src={
+    categoryImages[category.id] ||
+    "/products/placeholder.png"
+  }
+  alt={`${category.name} category product`}
+  onError={(event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src =
+      "/products/placeholder.png";
+  }}
+/>
             </Link>
           ))}
         </div>
